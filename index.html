@@ -312,8 +312,11 @@
   .stock-legend{ display:flex; gap:16px; margin-top:8px; }
   .stock-legend span{ font-size:10.5px; color:var(--ink-mid); display:flex; align-items:center; gap:5px; }
   .stock-legend .sw{ width:8px;height:8px;border-radius:2px; }
-  .stock-cov{ font-size:11px; color:var(--ink-lo); margin-top:6px; }
+  .stock-cov{ font-size:11px; color:var(--ink-lo); margin-top:6px; line-height:1.6; }
   .stock-cov b{ color:var(--amber-deep); }
+  .cov-flag{ display:inline-block; font-size:9.5px; font-weight:700; letter-spacing:.03em; padding:2px 7px; border-radius:9px; margin-right:6px; }
+  .cov-flag.late{ background:var(--red-bg); color:var(--red); }
+  .cov-flag.ok{ background:var(--green-bg); color:var(--green); }
 
   .expiry-list{ display:flex; flex-direction:column; gap:0; }
   .expiry-row{ display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); font-size:12px; }
@@ -497,15 +500,15 @@
         <div class="kpi"><div class="kpi-val red">3</div><div class="kpi-lbl">tank si liberano entro 10 giorni</div></div>
         <div class="kpi"><div class="kpi-val">11</div><div class="kpi-lbl">cotte attualmente in fermentazione</div></div>
         <div class="kpi"><div class="kpi-val amber">2</div><div class="kpi-lbl">cotte pianificate da confermare</div></div>
-        <div class="kpi"><div class="kpi-val green">2.100 L</div><div class="kpi-lbl">giacenza IPA fusto disponibile</div></div>
+        <div class="kpi"><div class="kpi-val" id="kpiStockVal">—</div><div class="kpi-lbl" id="kpiStockLbl">priorità di produzione</div></div>
       </div>
 
       <div class="section">
         <div class="section-head">
-          <div class="section-title">Segnalazioni <span class="count">3</span></div>
+          <div class="section-title">Segnalazioni <span class="count" id="alertCount">3</span></div>
           <div class="section-note">generate automaticamente dallo stato attuale</div>
         </div>
-        <div class="alerts">
+        <div class="alerts" id="alertsList">
           <div class="alert critical">
             <div class="alert-badge">CRITICO</div>
             <div class="alert-body">
@@ -899,15 +902,25 @@ document.getElementById('todayBtn').addEventListener('click',()=>{
 });
 
 /* ══════════════════════════ RENDER: MAGAZZINO ══════════════════════════ */
+// Config-style constants (would live in CONFIG sheet in the real system)
+const PACKAGING_DAYS = 4;      // giorni di confezionamento dopo l'uscita dal tank
+const SAFETY_MARGIN_DAYS = 7;  // margine di sicurezza prima di considerare il rischio critico
+
+function recipeWeeks(key){ return parseInt(RECIPES[key].durata); }
+function leadDays(key){ return recipeWeeks(key)*7 + PACKAGING_DAYS + SAFETY_MARGIN_DAYS; }
+
 const STOCK = [
-  { fam:"IPA", color:RECIPES.IPA.color, fusto:2100, bott:640, lat:380, cov:9 },
-  { fam:"Pale Ale", color:RECIPES.PALE.color, fusto:1400, bott:820, lat:0, cov:14 },
-  { fam:"Pils", color:RECIPES.PILS.color, fusto:1850, bott:410, lat:220, cov:11 },
-  { fam:"Helles", color:RECIPES.HELL.color, fusto:960, bott:300, lat:0, cov:6 },
-  { fam:"Bock", color:RECIPES.BOCK.color, fusto:2200, bott:150, lat:0, cov:38 },
-  { fam:"Saison", color:RECIPES.SAIS.color, fusto:680, bott:200, lat:0, cov:8 },
-  { fam:"Loop", color:RECIPES.LOOP.color, fusto:520, bott:0, lat:140, cov:12 },
+  { key:"IPA",  fam:"IPA",      color:RECIPES.IPA.color,  fusto:2100, bott:640, lat:380, cov:32 },
+  { key:"PALE", fam:"Pale Ale", color:RECIPES.PALE.color, fusto:1400, bott:820, lat:0,   cov:14 },
+  { key:"PILS", fam:"Pils",     color:RECIPES.PILS.color, fusto:1850, bott:410, lat:220, cov:38 },
+  { key:"HELL", fam:"Helles",   color:RECIPES.HELL.color, fusto:960,  bott:300, lat:0,   cov:25 },
+  { key:"BOCK", fam:"Bock",     color:RECIPES.BOCK.color, fusto:2200, bott:150, lat:0,   cov:60 },
+  { key:"SAIS", fam:"Saison",   color:RECIPES.SAIS.color, fusto:680,  bott:200, lat:0,   cov:19 },
+  { key:"LOOP", fam:"Loop",     color:RECIPES.LOOP.color, fusto:520,  bott:0,   lat:140, cov:33 },
 ];
+// pre-compute lead time and margin (coverage - lead time) for each family
+STOCK.forEach(s=>{ s.lead = leadDays(s.key); s.margin = s.cov - s.lead; });
+
 function shade(hex, amt){
   const n = parseInt(hex.slice(1),16);
   let r=(n>>16)+amt, g=(n>>8&0xff)+amt, b=(n&0xff)+amt;
@@ -919,8 +932,13 @@ function renderStock(){
   const maxTotal = Math.max(...STOCK.map(s=>s.fusto+s.bott+s.lat));
   grid.innerHTML = STOCK.map(s=>{
     const total = s.fusto+s.bott+s.lat;
-    const barWidthPct = (total/maxTotal*100).toFixed(1); // this family's bar width relative to the largest family
+    const barWidthPct = (total/maxTotal*100).toFixed(1);
     const pf = (s.fusto/total*100).toFixed(0), pb=(s.bott/total*100).toFixed(0), pl=(s.lat/total*100).toFixed(0);
+    const late = s.margin < 0;
+    const gap = Math.abs(s.margin);
+    const covLine = late
+      ? `<span class="cov-flag late">DA PIANIFICARE</span> copertura stimata ${s.cov}gg · una cotta impiega circa ${s.lead}gg da avvio a scaffale (${recipeWeeks(s.key)} sett. fermentazione + ${PACKAGING_DAYS}gg confezionamento + ${SAFETY_MARGIN_DAYS}gg margine) — avviandola ora si stima comunque ~${gap}gg senza scorta prima che sia pronta`
+      : `<span class="cov-flag ok">COPERTURA OK</span> copertura stimata ${s.cov}gg, con ${s.margin}gg di margine rispetto al tempo di produzione (${s.lead}gg)`;
     return `
     <div class="stock-card">
       <div class="stock-top">
@@ -939,9 +957,41 @@ function renderStock(){
         <span><span class="sw" style="background:${shade(s.color,-35)}"></span>Bottiglia ${s.bott} L</span>
         <span><span class="sw" style="background:${shade(s.color,40)}"></span>Lattina ${s.lat} L</span>
       </div>
-      <div class="stock-cov">copertura stimata a ritmo vendita attuale: <b>${s.cov} giorni</b></div>
+      <div class="stock-cov">${covLine}</div>
     </div>`;
   }).join('');
+
+  // ── Feed the "most urgent" family into the Panoramica KPI + alert ──
+  const worst = STOCK.reduce((a,b)=> b.margin < a.margin ? b : a);
+  const kpiVal = document.getElementById('kpiStockVal');
+  const kpiLbl = document.getElementById('kpiStockLbl');
+  if(kpiVal){
+    if(worst.margin < 0){
+      const gap = Math.abs(worst.margin);
+      kpiVal.textContent = worst.fam;
+      kpiVal.className = 'kpi-val red';
+      kpiLbl.textContent = `copertura ${worst.cov}gg vs ~${worst.lead}gg di produzione · avviare ora evita ~${gap}gg senza scorta`;
+    } else {
+      kpiVal.textContent = worst.fam;
+      kpiVal.className = 'kpi-val green';
+      kpiLbl.textContent = `margine più stretto (${worst.margin}gg), comunque sotto controllo`;
+    }
+  }
+  const alertsList = document.getElementById('alertsList');
+  const alertCount = document.getElementById('alertCount');
+  if(alertsList && worst.margin < 0){
+    const div = document.createElement('div');
+    div.className = 'alert critical';
+    div.innerHTML = `
+      <div class="alert-badge">CRITICO</div>
+      <div class="alert-body">
+        <div class="alert-title">${worst.fam}: conviene avviare una nuova cotta ora</div>
+        <div class="alert-desc">Copertura stimata ${worst.cov} giorni. Una cotta di ${worst.fam} impiega circa ${worst.lead} giorni da avvio a scaffale (${recipeWeeks(worst.key)} settimane di fermentazione + ${PACKAGING_DAYS} confezionamento + ${SAFETY_MARGIN_DAYS} margine): anche avviandola oggi, si stima circa ${Math.abs(worst.margin)} giorni senza scorta prima che sia pronta.</div>
+      </div>
+      <div class="alert-action">→ Pianifica ${worst.fam} ora</div>`;
+    alertsList.insertBefore(div, alertsList.firstChild);
+    if(alertCount) alertCount.textContent = (parseInt(alertCount.textContent)+1);
+  }
 }
 
 const EXPIRY = [
