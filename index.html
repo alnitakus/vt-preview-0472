@@ -262,9 +262,12 @@
   .evt svg{ width:9px; height:9px; flex-shrink:0; }
   .evt-txt{ font-size:8.5px; font-weight:700; letter-spacing:.01em; font-family:'IBM Plex Mono',monospace; }
 
-  .tl-legend{ display:flex; align-items:center; gap:16px; padding:11px 16px; border-top:1px solid var(--border); flex-wrap:wrap; background:var(--panel-hi); }
-  .leg-item{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--ink-mid); }
+  .tl-legend{ display:flex; align-items:center; gap:18px; padding:11px 16px; border-top:1px solid var(--border); flex-wrap:wrap; background:var(--panel-hi); }
+  .leg-item{ display:flex; align-items:center; gap:7px; font-size:11px; color:var(--ink-mid); }
   .leg-swatch{ width:11px; height:11px; border-radius:3px; }
+  .leg-today-line{ width:2px; height:16px; background:var(--red); border-radius:1px; }
+  .leg-free-txt{ font-style:italic; color:var(--ink-lo); font-size:11.5px; }
+  .leg-plan-swatch{ width:26px; height:12px; border-radius:3px; background:var(--amber); opacity:.55; border:1.5px dashed var(--amber-deep); background-image: repeating-linear-gradient(135deg, transparent 0 4px, rgba(255,255,255,.35) 4px 8px); }
   .leg-sep{ width:1px; height:13px; background:var(--border-strong); }
 
   /* tooltip */
@@ -591,10 +594,10 @@
           </div>
         </div>
         <div class="tl-legend">
-          <div class="leg-item"><span class="leg-swatch" style="background:var(--red)"></span> Oggi</div>
+          <div class="leg-item"><span class="leg-today-line"></span> Oggi</div>
           <div class="leg-sep"></div>
-          <div class="leg-item"><span class="leg-swatch" style="background:var(--ink-lo)"></span> Libero</div>
-          <div class="leg-item"><span class="leg-swatch" style="background:var(--amber); opacity:.6; border:1.5px dashed var(--amber-deep)"></span> Pianificato (da confermare)</div>
+          <div class="leg-item"><span class="leg-free-txt">libero</span> · tank senza cotta</div>
+          <div class="leg-item"><span class="leg-plan-swatch"></span> Pianificato (da confermare)</div>
           <div class="leg-sep"></div>
           <div class="leg-item" id="legEvt"></div>
         </div>
@@ -719,6 +722,7 @@ const TANKS = [
 ];
 
 const COTTE = [
+  { tank:"30.1", recipe:"SAIS", lot:"L00596", start:24, weeks:5, vol:2700, planned:true },
   { tank:"30.2", recipe:"LOOP", lot:"L00575", start:0,  weeks:4, vol:2800, planned:false },
   { tank:"30.2", recipe:"SAIS", lot:"L00588", start:33, weeks:5, vol:2900, planned:true },
   { tank:"30.3", recipe:"PILS", lot:"L00570", start:-6, weeks:5, vol:2600, planned:false },
