@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vetra · Sala Cotte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Vetra street/concrete palette — light, warm, industrial */
+    --bg: #E9E4D8;
+    --bg-texture: #E2DCCC;
+    --panel: #F6F3EB;
+    --panel-hi: #FFFFFF;
+    --border: #D6CEB9;
+    --border-strong: #C3B89D;
+
+    --ink: #211C15;
+    --ink-mid: #6B6250;
+    --ink-lo: #978C72;
+
+    --amber: #C1811F;
+    --amber-deep: #96631A;
+    --amber-bg: rgba(193,129,31,.13);
+
+    --red: #BD3A22;
+    --red-bg: rgba(189,58,34,.10);
+
+    --green: #3F6E4C;
+    --green-bg: rgba(63,110,76,.12);
+
+    --blue: #2F4C72;
+    --blue-bg: rgba(47,76,114,.10);
+
+    --sidebar: #1D1913;
+    --sidebar-hi: #2A251C;
+    --sidebar-text: #C9BFA9;
+    --sidebar-text-dim: #746A56;
+
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      repeating-linear-gradient(0deg, transparent 0 2px, rgba(0,0,0,.012) 2px 4px),
+      var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  ::selection{ background: var(--amber-bg); }
+  .mono{ font-family: 'IBM Plex Mono', monospace; }
+  .stencil{ font-family: 'Archivo Black', sans-serif; text-transform: uppercase; }
+
+  /* ═══════════ APP SHELL ═══════════ */
+  .app{
+    display:flex;
+    min-height: 100vh;
+  }
+
+  /* ─── Sidebar ─── */
+  .sidebar{
+    width: 232px;
+    flex-shrink:0;
+    background: var(--sidebar);
+    display:flex; flex-direction:column;
+    position: sticky; top:0; height:100vh;
+  }
+  .side-brand{
+    padding: 26px 22px 20px;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .side-brand .mark{
+    font-family:'Archivo Black', sans-serif;
+    font-size: 22px;
+    color: #F0E4C8;
+    letter-spacing: 0.01em;
+    line-height:1;
+  }
+  .side-brand .mark span{ color: var(--amber); }
+  .side-brand .sub{
+    margin-top:6px;
+    font-size: 10.5px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color: var(--sidebar-text-dim);
+  }
+
+  .side-nav{
+    flex:1;
+    padding: 18px 12px;
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .nav-item{
+    display:flex; align-items:center; gap:12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--sidebar-text);
+    font-size: 13.5px; font-weight:500;
+    cursor:pointer;
+    transition: background .12s ease, color .12s ease;
+  }
+  .nav-item svg{ width:17px; height:17px; flex-shrink:0; opacity:.85; }
+  .nav-item:hover{ background: var(--sidebar-hi); color:#F0E4C8; }
+  .nav-item.active{ background: var(--amber); color: #241A0A; font-weight:600; }
+  .nav-item.active svg{ opacity:1; }
+
+  .side-foot{
+    padding: 16px 22px 22px;
+    border-top: 1px solid rgba(255,255,255,.06);
+    font-size: 11px;
+    color: var(--sidebar-text-dim);
+    display:flex; align-items:center; gap:8px;
+  }
+  .side-foot .dot{ width:6px;height:6px;border-radius:50%; background:var(--green); box-shadow:0 0 0 3px rgba(63,110,76,.25);}
+
+  /* ─── Main ─── */
+  .main{
+    flex:1;
+    min-width:0;
+    padding: 30px 40px 60px;
+    max-width: 1280px;
+  }
+  .page{ display:none; }
+  .page.active{ display:block; animation: fadein .2s ease; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .page-head{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    margin-bottom: 26px;
+    flex-wrap:wrap; gap:14px;
+    padding-bottom: 18px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .page-title{
+    font-family:'Archivo Black', sans-serif;
+    font-size: 26px;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing:.01em;
+  }
+  .page-sub{ font-size:13px; color:var(--ink-mid); margin-top:4px; }
+
+  .date-nav{ display:flex; align-items:center; gap:8px; }
+  .lbl{ font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--ink-mid); min-width:170px; text-align:center; }
+  .nav-btn{
+    width:30px;height:30px; display:flex;align-items:center;justify-content:center;
+    background: var(--panel-hi); border:1.5px solid var(--border-strong); border-radius:7px;
+    color: var(--ink-mid); cursor:pointer; font-size:14px;
+  }
+  .nav-btn:hover{ background: var(--amber-bg); color:var(--ink); border-color:var(--amber); }
+  .today-btn{
+    padding:0 13px; height:30px; background:var(--ink); color:#F0E4C8;
+    border:none; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; letter-spacing:.02em;
+  }
+  .today-btn:hover{ background: var(--amber-deep); }
+
+  /* ═══════════ KPI ROW ═══════════ */
+  .kpi-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px; }
+  @media (max-width:900px){ .kpi-row{ grid-template-columns:repeat(2,1fr);} }
+  .kpi{
+    background: var(--panel); border:1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .kpi-val{ font-family:'Archivo Black',sans-serif; font-size:26px; color:var(--ink); line-height:1; }
+  .kpi-val.amber{ color:var(--amber-deep); }
+  .kpi-val.red{ color:var(--red); }
+  .kpi-val.green{ color:var(--green); }
+  .kpi-lbl{ font-size:11.5px; color:var(--ink-mid); margin-top:6px; }
+
+  /* ═══════════ SECTION ═══════════ */
+  .section{ margin-bottom: 30px; }
+  .section-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;}
+  .section-title{ font-family:'Archivo Black', sans-serif; font-size:15.5px; color:var(--ink); text-transform:uppercase; letter-spacing:.02em; display:flex; align-items:center; gap:9px;}
+  .section-title .count{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-mid); background:var(--panel-hi); border:1px solid var(--border-strong); padding:2px 8px; border-radius:20px; text-transform:none; letter-spacing:0;}
+  .section-note{ font-size:12px; color:var(--ink-lo); }
+
+  /* ═══════════ ALERTS ═══════════ */
+  .alerts{ display:flex; flex-direction:column; gap:9px; }
+  .alert{
+    display:flex; gap:14px; align-items:flex-start;
+    background: var(--panel); border:1px solid var(--border); border-left:4px solid var(--border-strong);
+    border-radius: var(--radius); padding:13px 16px;
+  }
+  .alert.critical{ border-left-color:var(--red); background: linear-gradient(90deg, var(--red-bg), var(--panel) 20%); }
+  .alert.warning{ border-left-color:var(--amber); background: linear-gradient(90deg, var(--amber-bg), var(--panel) 20%); }
+  .alert.info{ border-left-color:var(--blue); background: linear-gradient(90deg, var(--blue-bg), var(--panel) 20%); }
+  .alert-badge{ font-size:9.5px; font-weight:700; letter-spacing:.06em; padding:3px 8px; border-radius:5px; white-space:nowrap; margin-top:1px; }
+  .alert.critical .alert-badge{ background:var(--red); color:#FBEAE4; }
+  .alert.warning .alert-badge{ background:var(--amber); color:#2A1D06; }
+  .alert.info .alert-badge{ background:var(--blue); color:#E7EDF5; }
+  .alert-body{ flex:1; min-width:0; }
+  .alert-title{ font-size:13.5px; font-weight:700; color:var(--ink); margin-bottom:2px; }
+  .alert-desc{ font-size:12.5px; color:var(--ink-mid); line-height:1.5; }
+  .alert-action{ font-size:12px; font-weight:700; white-space:nowrap; margin-top:2px; }
+  .alert.critical .alert-action{ color:var(--red); }
+  .alert.warning .alert-action{ color:var(--amber-deep); }
+  .alert.info .alert-action{ color:var(--blue); }
+
+  /* ═══════════ SCENARIO WORKFLOW CARD ═══════════ */
+  .flow-card{
+    background: var(--panel); border:1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .flow-steps{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:14px; }
+  @media (max-width:900px){ .flow-steps{ grid-template-columns:repeat(2,1fr);} }
+  .flow-step{ position:relative; padding-left:0; }
+  .flow-num{
+    width:26px;height:26px;border-radius:50%;background:var(--ink);color:#F0E4C8;
+    display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;
+    margin-bottom:8px;
+  }
+  .flow-step b{ display:block; font-size:12.5px; color:var(--ink); margin-bottom:3px; }
+  .flow-step p{ font-size:11.5px; color:var(--ink-mid); line-height:1.5; margin:0; }
+  .flow-note{
+    margin-top:16px; padding:11px 14px; background:var(--amber-bg); border:1px dashed var(--amber);
+    border-radius:8px; font-size:12px; color:var(--amber-deep); font-weight:500;
+  }
+
+  /* ═══════════ TIMELINE ═══════════ */
+  .timeline-wrap{ background: var(--panel-hi); border:1px solid var(--border-strong); border-radius: var(--radius); overflow:hidden; }
+  .timeline-outer{ display:flex; }
+  .timeline-scroll{ overflow-x:auto; overflow-y:hidden; flex:1; min-width:0; }
+  .timeline-grid{ min-width:1000px; }
+
+  .tl-rowlabels{ display:flex; flex-direction:column; border-right:1.5px solid var(--border-strong); background:var(--panel-hi); flex-shrink:0; width:190px; z-index:5; }
+  .tl-rowlabel-head{ height:44px; display:flex; align-items:center; padding:0 14px; font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-lo); border-bottom:1px solid var(--border); background:var(--panel-hi); font-weight:700;}
+  .tl-rowlabel{ height:52px; display:flex; align-items:center; gap:10px; padding:0 14px; border-bottom:1px solid var(--border); background:var(--panel-hi); }
+
+  .glass{ width:16px; border:1.5px solid var(--border-strong); border-radius: 2px 2px 5px 5px; flex-shrink:0; }
+  .glass-fill{ width:100%; height:100%; border-radius:1px 1px 4px 4px; }
+
+  .tl-tank-id{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:700; color:var(--ink); line-height:1.2; }
+  .tl-tank-cap{ font-size:10px; color:var(--ink-lo); line-height:1.2; }
+  .dual-badge{ font-size:8px; font-weight:700; color:#fff; background:var(--blue); padding:1px 4px; border-radius:4px; margin-left:auto; letter-spacing:.03em; }
+
+  .tl-main{ position:relative; }
+  .tl-header{ display:flex; height:44px; border-bottom:1px solid var(--border); }
+  .tl-week{ flex-shrink:0; display:flex; flex-direction:column; align-items:center; justify-content:center; border-right:1px solid var(--border); font-size:10.5px; color:var(--ink-lo); }
+  .tl-week b{ color:var(--ink-mid); font-size:11px; font-weight:700; }
+
+  .tl-rows{ position:relative; }
+  .tl-row{ height:52px; border-bottom:1px solid var(--border); position:relative; display:flex; }
+  .tl-daycell{ flex-shrink:0; border-right:1px solid rgba(214,206,185,.5); height:100%; }
+  .tl-daycell.weekend{ background: rgba(0,0,0,.02); }
+
+  .today-line{ position:absolute; top:0; bottom:0; width:2px; background:var(--red); z-index:4; }
+  .today-tag{ position:absolute; top:5px; transform:translateX(-50%); background:var(--red); color:#FBEAE4; font-size:9px; font-weight:700; padding:2px 6px; border-radius:4px; z-index:6; letter-spacing:.03em; }
+
+  .bar{ position:absolute; top:10px; height:32px; border-radius:6px; cursor:default; z-index:2; }
+  .bar-label{ position:sticky; left:8px; display:flex; align-items:center; height:32px; padding:0 10px; font-size:11px; font-weight:700; color:#fff; white-space:nowrap; max-width:fit-content; text-shadow: 0 1px 1px rgba(0,0,0,.15); }
+  .bar .lot{ font-family:'IBM Plex Mono',monospace; font-weight:500; opacity:.8; margin-left:6px; }
+  .bar.plan{ background: repeating-linear-gradient(135deg, transparent 0 6px, rgba(255,255,255,.18) 6px 12px); border:1.5px dashed rgba(255,255,255,.55); }
+  .free-label{ position:absolute; top:0; bottom:0; left:14px; display:flex; align-items:center; font-size:11.5px; font-style:italic; color:var(--ink-lo); }
+
+  .evt{ position:absolute; top:4px; height:16px; padding:0 4px 0 3px; border-radius:4px; display:flex; align-items:center; gap:2px; z-index:3; border:1px solid rgba(0,0,0,.15); white-space:nowrap; }
+  .evt svg{ width:9px; height:9px; flex-shrink:0; }
+  .evt-txt{ font-size:8.5px; font-weight:700; letter-spacing:.01em; font-family:'IBM Plex Mono',monospace; }
+
+  .tl-legend{ display:flex; align-items:center; gap:16px; padding:11px 16px; border-top:1px solid var(--border); flex-wrap:wrap; background:var(--panel-hi); }
+  .leg-item{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--ink-mid); }
+  .leg-swatch{ width:11px; height:11px; border-radius:3px; }
+  .leg-sep{ width:1px; height:13px; background:var(--border-strong); }
+
+  /* tooltip */
+  .tooltip{
+    position:fixed; background:var(--ink); border:1px solid #3A3226; border-radius:8px; padding:10px 12px;
+    font-size:12px; color:#D8CFC0; max-width:250px; z-index:50; pointer-events:none; opacity:0; transition:opacity .1s ease;
+    box-shadow:0 10px 26px rgba(0,0,0,.25);
+  }
+  .tooltip.show{ opacity:1; }
+  .tooltip .t-title{ color:#F0E4C8; font-weight:700; font-size:12.5px; margin-bottom:4px; }
+  .tooltip .t-row{ display:flex; justify-content:space-between; gap:12px; margin-top:2px; }
+  .tooltip .t-row span:first-child{ color:#948A76; }
+
+  /* ═══════════ RECIPE CHIPS + CARDS ═══════════ */
+  .chip-row{ display:flex; flex-wrap:wrap; gap:8px; }
+  .chip{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-mid); background:var(--panel-hi); border:1px solid var(--border-strong); padding:5px 10px 5px 8px; border-radius:20px; }
+  .chip .sw{ width:9px; height:9px; border-radius:3px; }
+
+  .recipe-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; }
+  .recipe-card{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; border-top: 4px solid; }
+  .recipe-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .recipe-name{ font-family:'Archivo Black', sans-serif; font-size:15px; text-transform:uppercase; color:var(--ink); }
+  .recipe-status{ font-size:9.5px; font-weight:700; padding:2px 7px; border-radius:10px; letter-spacing:.03em; }
+  .recipe-status.attiva{ background:var(--green-bg); color:var(--green); }
+  .recipe-status.attesa{ background:var(--amber-bg); color:var(--amber-deep); }
+  .recipe-row{ display:flex; justify-content:space-between; font-size:11.5px; padding:5px 0; border-bottom:1px solid var(--border); color:var(--ink-mid); }
+  .recipe-row:last-child{ border-bottom:none; }
+  .recipe-row b{ color:var(--ink); font-weight:600; }
+  .syn-tag{ display:inline-block; font-size:10px; background:var(--panel-hi); border:1px solid var(--border-strong); color:var(--ink-lo); padding:1px 6px; border-radius:8px; margin:2px 3px 0 0;}
+
+  /* ═══════════ MAGAZZINO ═══════════ */
+  .stock-grid{ display:flex; flex-direction:column; gap:10px; }
+  .stock-card{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; }
+  .stock-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .stock-name{ display:flex; align-items:center; gap:10px; font-family:'Archivo Black',sans-serif; font-size:14px; text-transform:uppercase; color:var(--ink); }
+  .stock-sw{ width:12px;height:12px;border-radius:3px; }
+  .stock-total{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--ink-mid); }
+  .stock-total b{ color:var(--ink); font-size:15px; }
+  .stock-bar-track{ width:100%; height:22px; }
+  .stock-bar{ display:flex; height:22px; border-radius:5px; overflow:hidden; background:var(--bg-texture); min-width:2%; }
+  .stock-seg{ display:flex; align-items:center; justify-content:center; font-size:10px; color:#fff; font-weight:600; white-space:nowrap; overflow:hidden; }
+  .stock-legend{ display:flex; gap:16px; margin-top:8px; }
+  .stock-legend span{ font-size:10.5px; color:var(--ink-mid); display:flex; align-items:center; gap:5px; }
+  .stock-legend .sw{ width:8px;height:8px;border-radius:2px; }
+  .stock-cov{ font-size:11px; color:var(--ink-lo); margin-top:6px; }
+  .stock-cov b{ color:var(--amber-deep); }
+
+  .expiry-list{ display:flex; flex-direction:column; gap:0; }
+  .expiry-row{ display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); font-size:12px; }
+  .expiry-row:last-child{ border-bottom:none; }
+  .expiry-lot{ font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--ink); width:90px; flex-shrink:0; }
+  .expiry-fam{ color:var(--ink-mid); flex:1; }
+  .expiry-days{ font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+  .expiry-days.soon{ background:var(--red-bg); color:var(--red); }
+  .expiry-days.ok{ background:var(--green-bg); color:var(--green); }
+
+  /* ═══════════ IMPORT LOG ═══════════ */
+  .log-card{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding: 6px 20px; }
+  .log-row{ display:flex; align-items:flex-start; gap:11px; padding:11px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
+  .log-row:last-child{ border-bottom:none; }
+  .log-icon{ width:19px;height:19px;border-radius:5px; display:flex;align-items:center;justify-content:center; flex-shrink:0; margin-top:1px; font-size:11px; font-weight:700;}
+  .log-icon.ok{ background:var(--green-bg); color:var(--green); }
+  .log-icon.warn{ background:var(--amber-bg); color:var(--amber-deep); }
+  .log-icon.new{ background:var(--blue-bg); color:var(--blue); }
+  .log-text{ color:var(--ink-mid); line-height:1.5; }
+  .log-text b{ color:var(--ink); font-weight:700; }
+  .log-time{ margin-left:auto; color:var(--ink-lo); font-size:11px; font-family:'IBM Plex Mono',monospace; flex-shrink:0; padding-top:1px;}
+  .log-file{ font-size:11.5px; color:var(--ink-lo); margin: 12px 0 4px; font-family:'IBM Plex Mono',monospace; }
+
+  footer.app-foot{ padding:26px 0 0; color:var(--ink-lo); font-size:11px; }
+
+  /* ═══════════ MOBILE NAV (hidden on desktop) ═══════════ */
+  .mobile-topbar{ display:none; }
+  .bottom-nav{ display:none; }
+
+  /* ═══════════ RESPONSIVE ═══════════ */
+  @media (max-width: 860px){
+    .sidebar{ display:none; }
+
+    .mobile-topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      position: sticky; top:0; z-index:40;
+      background: var(--sidebar);
+      padding: 14px 18px;
+    }
+    .mt-mark{ font-family:'Archivo Black', sans-serif; font-size:17px; color:#F0E4C8; }
+    .mt-mark span{ color:var(--amber); }
+    .mt-status{ display:flex; align-items:center; }
+    .mt-status .dot{ width:8px;height:8px;border-radius:50%; background:var(--green); box-shadow:0 0 0 3px rgba(63,110,76,.3); }
+
+    .app{ flex-direction:column; }
+    .main{ max-width:100%; padding: 18px 16px 90px; }
+
+    .bottom-nav{
+      display:flex;
+      position: fixed; bottom:0; left:0; right:0; z-index:50;
+      background: var(--sidebar);
+      border-top: 1px solid rgba(255,255,255,.08);
+      padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    }
+    .bottom-nav .nav-item{
+      flex:1; flex-direction:column; gap:3px;
+      padding: 7px 2px; border-radius:8px;
+      font-size:9.5px; text-align:center;
+    }
+    .bottom-nav .nav-item svg{ width:19px; height:19px; }
+
+    .page-head{ flex-direction:column; align-items:flex-start; }
+    .page-title{ font-size:21px; }
+    .date-nav{ width:100%; justify-content:space-between; }
+    .lbl{ min-width:0; font-size:11.5px; }
+
+    .kpi-row{ grid-template-columns: repeat(2,1fr); gap:10px; }
+    .kpi-val{ font-size:21px; }
+
+    .alert{ flex-direction:column; align-items:stretch; gap:7px; }
+    .alert-badge{ align-self:flex-start; }
+    .alert-action{ white-space:normal; margin-left:0; }
+
+    .flow-steps{ grid-template-columns: 1fr 1fr; gap:12px; }
+
+    .recipe-grid{ grid-template-columns: 1fr 1fr; gap:10px; }
+    .recipe-card{ padding:13px 14px; }
+
+    .tl-rowlabels{ width:132px; }
+    .tl-rowlabel{ padding: 0 8px; gap:7px; }
+    .tl-tank-id{ font-size:11.5px; }
+    .tl-tank-cap{ font-size:9px; }
+    .dual-badge{ font-size:7px; padding:1px 3px; }
+    .bar-label{ left:6px; padding:0 7px; font-size:10px; }
+
+    .stock-top{ flex-direction:column; align-items:flex-start; gap:4px; }
+    .stock-legend{ flex-wrap:wrap; gap:8px 14px; }
+
+    .expiry-row{ flex-wrap:wrap; gap:4px 10px; }
+    .expiry-lot{ width:auto; }
+  }
+
+  @media (max-width: 480px){
+    .kpi-row{ grid-template-columns: 1fr 1fr; }
+    .recipe-grid{ grid-template-columns: 1fr; }
+    .flow-steps{ grid-template-columns: 1fr; }
+    .bottom-nav .nav-item span{ display:none; }
+    .bottom-nav .nav-item{ padding:10px 2px; }
+    .bottom-nav .nav-item svg{ width:21px; height:21px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="side-brand">
+      <div class="mark">VETRA<span>·</span></div>
+      <div class="sub">Sala Cotte · The Matrixxx</div>
+    </div>
+    <div class="side-nav" id="sideNav">
+      <div class="nav-item active" data-page="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        Panoramica
+      </div>
+      <div class="nav-item" data-page="piano">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+        Pianificazione
+      </div>
+      <div class="nav-item" data-page="magazzino">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-6 9 6v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21V12h6v9"/></svg>
+        Magazzino
+      </div>
+      <div class="nav-item" data-page="ricette">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v6L4 20a1 1 0 0 0 1 2h14a1 1 0 0 0 1-2l-4-12V2"/><path d="M8 2h8"/></svg>
+        Ricette
+      </div>
+      <div class="nav-item" data-page="import">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><path d="M4 15l4-5 4 3 5-7 3 4"/></svg>
+        Import log
+      </div>
+    </div>
+    <div class="side-foot"><span class="dot"></span> Import ok · 03:14</div>
+  </div>
+
+  <!-- MOBILE TOPBAR -->
+  <div class="mobile-topbar">
+    <div class="mt-mark">VETRA<span>·</span></div>
+    <div class="mt-status"><span class="dot"></span></div>
+  </div>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <div class="bottom-nav" id="bottomNav">
+    <div class="nav-item active" data-page="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Home</span>
+    </div>
+    <div class="nav-item" data-page="piano">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+      <span>Piano</span>
+    </div>
+    <div class="nav-item" data-page="magazzino">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-6 9 6v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21V12h6v9"/></svg>
+      <span>Magazzino</span>
+    </div>
+    <div class="nav-item" data-page="ricette">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v6L4 20a1 1 0 0 0 1 2h14a1 1 0 0 0 1-2l-4-12V2"/><path d="M8 2h8"/></svg>
+      <span>Ricette</span>
+    </div>
+    <div class="nav-item" data-page="import">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><path d="M4 15l4-5 4 3 5-7 3 4"/></svg>
+      <span>Import</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- ══════════════ PAGE: HOME ══════════════ -->
+    <div class="page active" id="page-home">
+      <div class="page-head">
+        <div>
+          <div class="page-title">Panoramica</div>
+          <div class="page-sub">Giovedì 17 luglio 2026 · stato generale sala cotte</div>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-val red">3</div><div class="kpi-lbl">tank si liberano entro 10 giorni</div></div>
+        <div class="kpi"><div class="kpi-val">11</div><div class="kpi-lbl">cotte attualmente in fermentazione</div></div>
+        <div class="kpi"><div class="kpi-val amber">2</div><div class="kpi-lbl">cotte pianificate da confermare</div></div>
+        <div class="kpi"><div class="kpi-val green">2.100 L</div><div class="kpi-lbl">giacenza IPA fusto disponibile</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">Segnalazioni <span class="count">3</span></div>
+          <div class="section-note">generate automaticamente dallo stato attuale</div>
+        </div>
+        <div class="alerts">
+          <div class="alert critical">
+            <div class="alert-badge">CRITICO</div>
+            <div class="alert-body">
+              <div class="alert-title">3 tank si liberano tra il 22 e il 26 luglio</div>
+              <div class="alert-desc">Tank 60.1, 60.3 e 120.3 terminano fermentazione nella stessa settimana. Nessuna cotta pianificata per sostituirle.</div>
+            </div>
+            <div class="alert-action">→ Pianifica entro venerdì</div>
+          </div>
+          <div class="alert warning">
+            <div class="alert-badge">ATTENZIONE</div>
+            <div class="alert-body">
+              <div class="alert-title">Lievito IPA disponibile · finestra 3 giorni</div>
+              <div class="alert-desc">Recupero da cotta 572 (tank 60.1) previsto mercoledì 22/07. 2ª generazione, ancora riutilizzabile una volta.</div>
+            </div>
+            <div class="alert-action">→ Valuta nuova cotta IPA</div>
+          </div>
+          <div class="alert info">
+            <div class="alert-badge">INFO</div>
+            <div class="alert-body">
+              <div class="alert-title">Codice articolo non riconosciuto in import DDT</div>
+              <div class="alert-desc">Lotto <span class="mono">L00591</span> risulta abbinabile alla cotta 578 "Wondercraft n.3" in pianificazione. Confermi il nome definitivo?</div>
+            </div>
+            <div class="alert-action">→ Conferma in Ricette</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">Scenari di pianificazione</div>
+        </div>
+        <div class="flow-card">
+          <div class="section-note" style="font-size:12.5px; color:var(--ink-mid);">Costruire e confrontare scenari futuri avviene in una conversazione con Claude (Cowork), non in questa dashboard. Qui vedi solo il risultato, una volta confermato.</div>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="flow-num">1</div>
+              <b>Chiedi a Claude</b>
+              <p>Ste apre il progetto Claude e descrive l'obiettivo: es. "quanta IPA mi serve per il festival di agosto?"</p>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">2</div>
+              <b>Claude propone scenari</b>
+              <p>Legge storico DDT, giacenza e occupazione tank. Propone 1+ opzioni con razionale esplicito.</p>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">3</div>
+              <b>Ste sceglie e conferma</b>
+              <p>Nessuna modifica avviene finché Ste non conferma esplicitamente lo scenario scelto.</p>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">4</div>
+              <b>Il database si aggiorna</b>
+              <p>Claude o Ste scrivono la cotta confermata. Qui in dashboard appare come pianificata (bordo tratteggiato).</p>
+            </div>
+          </div>
+          <div class="flow-note">💬 Ultimo scenario applicato: cotta IPA su tank 120.4, entrata 24/07 — confermato da Ste il 15/07</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ PAGE: PIANIFICAZIONE ══════════════ -->
+    <div class="page" id="page-piano">
+      <div class="page-head">
+        <div>
+          <div class="page-title">Pianificazione</div>
+          <div class="page-sub">14 tank · trascina o scorri per navigare nel tempo</div>
+        </div>
+        <div class="date-nav">
+          <div class="nav-btn" id="prevWeek">‹</div>
+          <div class="lbl" id="dateLabel">—</div>
+          <div class="nav-btn" id="nextWeek">›</div>
+          <div class="today-btn" id="todayBtn">Oggi</div>
+        </div>
+      </div>
+
+      <div class="timeline-wrap">
+        <div class="timeline-outer">
+          <div class="tl-rowlabels" id="rowLabels"></div>
+          <div class="timeline-scroll" id="scrollArea">
+            <div class="timeline-grid">
+              <div class="tl-main">
+                <div class="tl-header" id="tlHeader"></div>
+                <div class="tl-rows" id="tlRows"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tl-legend">
+          <div class="leg-item"><span class="leg-swatch" style="background:var(--red)"></span> Oggi</div>
+          <div class="leg-sep"></div>
+          <div class="leg-item"><span class="leg-swatch" style="background:var(--ink-lo)"></span> Libero</div>
+          <div class="leg-item"><span class="leg-swatch" style="background:var(--amber); opacity:.6; border:1.5px dashed var(--amber-deep)"></span> Pianificato (da confermare)</div>
+          <div class="leg-sep"></div>
+          <div class="leg-item" id="legEvt"></div>
+        </div>
+      </div>
+
+      <div class="section" style="margin-top:22px;">
+        <div class="section-head"><div class="section-title" style="font-size:13px;">Colori ricetta</div></div>
+        <div class="chip-row" id="chipRow"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════ PAGE: MAGAZZINO ══════════════ -->
+    <div class="page" id="page-magazzino">
+      <div class="page-head">
+        <div>
+          <div class="page-title">Magazzino</div>
+          <div class="page-sub">giacenza aggiornata stanotte alle 03:02 · fonte Esolver</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">Giacenza per famiglia <span class="count">7 famiglie</span></div>
+          <div class="section-note">fusto · bottiglia · lattina, litri disponibili</div>
+        </div>
+        <div class="stock-grid" id="stockGrid"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">Lotti in scadenza</div>
+          <div class="section-note">prossimi 45 giorni</div>
+        </div>
+        <div class="log-card">
+          <div class="expiry-list" id="expiryList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ PAGE: RICETTE ══════════════ -->
+    <div class="page" id="page-ricette">
+      <div class="page-head">
+        <div>
+          <div class="page-title">Ricette</div>
+          <div class="page-sub">anagrafica ricette attive · collegamento famiglia Esolver</div>
+        </div>
+      </div>
+      <div class="recipe-grid" id="recipeGrid"></div>
+    </div>
+
+    <!-- ══════════════ PAGE: IMPORT LOG ══════════════ -->
+    <div class="page" id="page-import">
+      <div class="page-head">
+        <div>
+          <div class="page-title">Import log</div>
+          <div class="page-sub">finestra rolling 30 giorni · confronto automatico per documento + articolo + lotto</div>
+        </div>
+      </div>
+      <div class="log-file">DDT_export_2026-07.xls · importato stanotte alle 03:14</div>
+      <div class="log-card">
+        <div id="logList"></div>
+      </div>
+      <div class="log-file" style="margin-top:18px;">GIACENZE.xls + GIACENZE_LOTTI.xls · importato stanotte alle 03:02</div>
+      <div class="log-card">
+        <div id="logList2"></div>
+      </div>
+    </div>
+
+    <footer class="app-foot">VETRA_SALA_COTTE · mockup con dati fittizi · non riflette la produzione reale</footer>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+/* ══════════════════════════ NAV ══════════════════════════ */
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    const target = item.dataset.page;
+    document.querySelectorAll('.nav-item').forEach(i=>{
+      i.classList.toggle('active', i.dataset.page===target);
+    });
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+target).classList.add('active');
+    window.scrollTo(0,0);
+  });
+});
+
+/* ══════════════════════════ DUMMY DATA ══════════════════════════ */
+
+const TODAY = new Date(2026, 6, 17);
+const DAY_W = 34;
+const TOTAL_DAYS = 84;
+const RANGE_START = addDays(TODAY, -21);
+
+const RECIPES = {
+  IPA:   { color: "#C1811F", name: "IPA",        durata:"5 sett.", tanks:"tutti", dual:"sì (120.x)", sinonimi:[], stato:"attiva" },
+  PALE:  { color: "#A3432B", name: "Pale Ale",   durata:"5 sett.", tanks:"tutti", dual:"sì (120.x)", sinonimi:[], stato:"attiva" },
+  PILS:  { color: "#7A8C63", name: "Pils",       durata:"5 sett.", tanks:"tutti", dual:"sì (120.x)", sinonimi:[], stato:"attiva" },
+  HELL:  { color: "#CBA135", name: "Helles",     durata:"5 sett.", tanks:"tutti", dual:"sì (120.x)", sinonimi:[], stato:"attiva" },
+  BOCK:  { color: "#6B4226", name: "Bock",       durata:"6 sett.", tanks:"tutti", dual:"da verificare", sinonimi:[], stato:"attiva" },
+  SAIS:  { color: "#5E8B7E", name: "Saison",     durata:"5 sett.", tanks:"tutti", dual:"da verificare", sinonimi:[], stato:"attiva" },
+  LOOP:  { color: "#7C5A99", name: "Loop",       durata:"4 sett.", tanks:"tutti", dual:"da verificare", sinonimi:["Session IPA"], stato:"attiva" },
+  WNDR:  { color: "#4472A6", name: "Wondercraft n.3", durata:"6 sett.", tanks:"120.x consigliato", dual:"sì", sinonimi:["nome definitivo da confermare · lotto L00591"], stato:"attesa" },
+};
+
+const TANKS = [
+  { id:"30.1", cap:3000, group:30, dual:false },
+  { id:"30.2", cap:3000, group:30, dual:false },
+  { id:"30.3", cap:3000, group:30, dual:false },
+  { id:"30.4", cap:3000, group:30, dual:false },
+  { id:"60.1", cap:6000, group:60, dual:false },
+  { id:"60.2", cap:6000, group:60, dual:false },
+  { id:"60.3", cap:6000, group:60, dual:false },
+  { id:"60.4", cap:6000, group:60, dual:false },
+  { id:"120.1", cap:12000, group:120, dual:true },
+  { id:"120.2", cap:12000, group:120, dual:true },
+  { id:"120.3", cap:12000, group:120, dual:true },
+  { id:"120.4", cap:12000, group:120, dual:true },
+  { id:"120.5", cap:12000, group:120, dual:true },
+  { id:"120.6", cap:12000, group:120, dual:true },
+];
+
+const COTTE = [
+  { tank:"30.2", recipe:"LOOP", lot:"L00575", start:0,  weeks:4, vol:2800, planned:false },
+  { tank:"30.2", recipe:"SAIS", lot:"L00588", start:33, weeks:5, vol:2900, planned:true },
+  { tank:"30.3", recipe:"PILS", lot:"L00570", start:-6, weeks:5, vol:2600, planned:false },
+  { tank:"30.4", recipe:"BOCK", lot:"L00577", start:20, weeks:6, vol:2500, planned:true },
+  { tank:"60.1", recipe:"IPA",  lot:"L00572", start:-3, weeks:5, vol:5800, planned:false },
+  { tank:"60.2", recipe:"PALE", lot:"L00571", start:4,  weeks:5, vol:5600, planned:false },
+  { tank:"60.4", recipe:"HELL", lot:"L00570", start:-10,weeks:5, vol:5200, planned:false },
+  { tank:"120.1", recipe:"IPA", lot:"L00568+69", start:-8, weeks:5, vol:11600, planned:false },
+  { tank:"120.2", recipe:"PALE", lot:"L00566+67", start:-3, weeks:5, vol:11400, planned:false },
+  { tank:"120.3", recipe:"WNDR", lot:"L00591", start:0, weeks:6, vol:11000, planned:false },
+  { tank:"120.4", recipe:"IPA", lot:"L00593", start:22, weeks:5, vol:11800, planned:true },
+  { tank:"120.5", recipe:"PILS", lot:"L00564+65", start:-9, weeks:5, vol:11200, planned:false },
+  { tank:"120.6", recipe:"HELL", lot:"L00562+63", start:-11, weeks:6, vol:11400, planned:false },
+];
+
+const EVT_TYPES = {
+  CONF: { label:"Confezionamento" }, SP:{ label:"Set point temperatura" },
+  GD: { label:"Gasatura dal basso" }, GU:{ label:"Gasatura dall'alto" },
+  REC:{ label:"Recupero lievito" }, DH:{ label:"Dry hopping" }, ANAL:{ label:"Analisi glutine" },
+};
+const evtColor = { CONF:"#2F4C72", SP:"#C1811F", GD:"#5E8B7E", GU:"#5E8B7E", REC:"#7C5A99", DH:"#7A8C63", ANAL:"#BD3A22" };
+
+const EVENTI = [
+  { tank:"60.1", day:2,  type:"SP" }, { tank:"60.1", day:5,  type:"DH" }, { tank:"60.1", day:8,  type:"GU" },
+  { tank:"60.1", day:12, type:"ANAL" }, { tank:"60.1", day:14, type:"REC" },
+  { tank:"60.2", day:6,  type:"SP" }, { tank:"60.2", day:10, type:"DH" }, { tank:"60.2", day:16, type:"GD" },
+  { tank:"120.1", day:1, type:"REC" }, { tank:"120.1", day:3, type:"CONF" },
+  { tank:"120.2", day:9, type:"DH" },
+  { tank:"120.3", day:4, type:"SP" }, { tank:"120.3", day:11,type:"GU" },
+  { tank:"30.3",  day:2, type:"ANAL" }, { tank:"30.3",  day:6, type:"CONF" },
+  { tank:"60.4",  day:1, type:"CONF" }, { tank:"120.6", day:2, type:"CONF" }, { tank:"120.5", day:5, type:"DH" },
+];
+
+/* ══════════════════════════ HELPERS ══════════════════════════ */
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function dayOffset(d){ return Math.round((d-RANGE_START)/86400000); }
+function fmtDate(d){ return d.toLocaleDateString('it-IT',{day:'2-digit',month:'short'}); }
+function isWeekend(d){ const wd=d.getDay(); return wd===0||wd===6; }
+
+function iconSVG(type){
+  const icons = {
+    box: '<path d="M1 3 L6 1 L11 3 L6 5 Z" fill="none" stroke="currentColor" stroke-width="1"/><path d="M1 3 V8 L6 10 V5 Z" fill="none" stroke="currentColor" stroke-width="1"/><path d="M11 3 V8 L6 10 V5 Z" fill="none" stroke="currentColor" stroke-width="1"/>',
+    therm: '<rect x="4.5" y="0.5" width="2" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="5.5" cy="8" r="2" fill="none" stroke="currentColor" stroke-width="1"/>',
+    arrowdown: '<path d="M5.5 1 V8 M2.5 5 L5.5 8 L8.5 5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>',
+    arrowup: '<path d="M5.5 9 V2 M2.5 5 L5.5 2 L8.5 5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>',
+    yeast: '<circle cx="4" cy="4" r="1.6" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="8" cy="3.5" r="1.2" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="6" cy="7.5" r="1.4" fill="none" stroke="currentColor" stroke-width="1"/>',
+    hop: '<path d="M5.5 0.5 C8 2 8 5 5.5 9.5 C3 5 3 2 5.5 0.5 Z" fill="none" stroke="currentColor" stroke-width="1"/>',
+    flask: '<path d="M4 1 H7 V3.5 L9 8.5 A1 1 0 0 1 8 9.8 H3 A1 1 0 0 1 2 8.5 L4 3.5 Z" fill="none" stroke="currentColor" stroke-width="1"/>',
+  };
+  return icons[type] || '';
+}
+const iconMap = { CONF:'box', SP:'therm', GD:'arrowdown', GU:'arrowup', REC:'yeast', DH:'hop', ANAL:'flask' };
+
+/* ══════════════════════════ RENDER: PIANIFICAZIONE ══════════════════════════ */
+function renderTimeline(){
+  const s=addDays(TODAY,-7), e=addDays(TODAY,7);
+  document.getElementById('dateLabel').textContent = `${fmtDate(s)} — ${fmtDate(e)} 2026`;
+
+  const rl = document.getElementById('rowLabels');
+  rl.innerHTML = '<div class="tl-rowlabel-head">Tank</div>';
+  TANKS.forEach(t=>{
+    const glassH = t.group===120 ? 30 : t.group===60 ? 21 : 13; // size reflects capacity tier, always fully filled
+    const fillColor = t.group===120 ? 'var(--blue)' : t.group===60 ? 'var(--amber)' : 'var(--green)';
+    rl.innerHTML += `
+      <div class="tl-rowlabel">
+        <div class="glass" style="height:${glassH}px;"><div class="glass-fill" style="background:${fillColor}"></div></div>
+        <div><div class="tl-tank-id">${t.id}</div><div class="tl-tank-cap">${t.cap.toLocaleString('it-IT')} lt</div></div>
+        ${t.dual ? '<div class="dual-badge">2×</div>' : ''}
+      </div>`;
+  });
+
+  const header = document.getElementById('tlHeader');
+  header.innerHTML=''; header.style.width=(TOTAL_DAYS*DAY_W)+"px";
+  let d=0;
+  while(d<TOTAL_DAYS){
+    const wDate = addDays(RANGE_START,d);
+    const cell=document.createElement('div');
+    cell.className='tl-week'; cell.style.width=(7*DAY_W)+"px";
+    cell.innerHTML = `<b>${wDate.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})}</b><span>settimana</span>`;
+    header.appendChild(cell); d+=7;
+  }
+
+  const rows = document.getElementById('tlRows');
+  rows.innerHTML=''; rows.style.width=(TOTAL_DAYS*DAY_W)+"px";
+  const todayX = dayOffset(TODAY)*DAY_W;
+
+  TANKS.forEach(t=>{
+    const row=document.createElement('div');
+    row.className='tl-row'; row.style.width=(TOTAL_DAYS*DAY_W)+"px";
+    for(let i=0;i<TOTAL_DAYS;i++){
+      const cellDate=addDays(RANGE_START,i);
+      const c=document.createElement('div');
+      c.className='tl-daycell'+(isWeekend(cellDate)?' weekend':'');
+      c.style.width=DAY_W+"px"; row.appendChild(c);
+    }
+    const tankCotte = COTTE.filter(c=>c.tank===t.id);
+    if(tankCotte.length===0){
+      const lbl=document.createElement('div'); lbl.className='free-label'; lbl.textContent='libero'; row.appendChild(lbl);
+    }
+    tankCotte.forEach(c=>{
+      const rec=RECIPES[c.recipe];
+      const bar=document.createElement('div');
+      bar.className='bar'+(c.planned?' plan':'');
+      bar.style.left=(c.start*DAY_W)+"px";
+      bar.style.width=Math.max(c.weeks*7*DAY_W-4,40)+"px";
+      bar.style.background=rec.color;
+      bar.innerHTML=`<div class="bar-label">${rec.name} <span class="lot">${c.lot}</span></div>`;
+      bar.addEventListener('mousemove',(e)=>showTooltip(e,c,rec));
+      bar.addEventListener('mouseleave',hideTooltip);
+      row.appendChild(bar);
+    });
+    EVENTI.filter(ev=>ev.tank===t.id).forEach(ev=>{
+      const badge=document.createElement('div');
+      badge.className='evt';
+      badge.style.left=(ev.day*DAY_W+2)+"px"; badge.style.top="34px";
+      badge.style.background=evtColor[ev.type]+"1c"; badge.style.color=evtColor[ev.type];
+      badge.style.borderColor=evtColor[ev.type]+"55";
+      badge.innerHTML=`<svg viewBox="0 0 11 11">${iconSVG(iconMap[ev.type])}</svg><span class="evt-txt">${ev.type}</span>`;
+      badge.addEventListener('mousemove',(e)=>showEvtTooltip(e,ev));
+      badge.addEventListener('mouseleave',hideTooltip);
+      row.appendChild(badge);
+    });
+    rows.appendChild(row);
+  });
+
+  const tlMain=document.querySelector('.tl-main');
+  document.querySelectorAll('.today-line,.today-tag').forEach(el=>el.remove());
+  tlMain.style.position='relative';
+  const line=document.createElement('div'); line.className='today-line';
+  line.style.left=todayX+"px"; line.style.height=(44+TANKS.length*52)+"px";
+  tlMain.appendChild(line);
+  const tag=document.createElement('div'); tag.className='today-tag'; tag.style.left=todayX+"px"; tag.textContent='OGGI';
+  tlMain.appendChild(tag);
+
+  document.getElementById('legEvt').innerHTML = Object.keys(EVT_TYPES).map(k=>
+    `<span class="mono" style="color:${evtColor[k]}; font-weight:700; margin-right:2px;">${k}</span>`
+  ).join(' <span style="color:var(--border-strong)">·</span> ');
+
+  document.getElementById('chipRow').innerHTML = Object.values(RECIPES).map(r=>
+    `<div class="chip"><span class="sw" style="background:${r.color}"></span>${r.name}</div>`
+  ).join('');
+
+  const scrollArea=document.getElementById('scrollArea');
+  setTimeout(()=>{ scrollArea.scrollLeft = Math.max(0, todayX-260); },0);
+}
+
+const tooltip=document.getElementById('tooltip');
+function showTooltip(e,c,rec){
+  tooltip.classList.add('show');
+  tooltip.innerHTML=`
+    <div class="t-title">${rec.name} ${c.planned?'· pianificata':'· in corso'}</div>
+    <div class="t-row"><span>Tank</span><span>${c.tank}</span></div>
+    <div class="t-row"><span>Lotto</span><span class="mono">${c.lot}</span></div>
+    <div class="t-row"><span>Volume</span><span>${c.vol.toLocaleString('it-IT')} lt</span></div>
+    <div class="t-row"><span>Durata</span><span>${c.weeks} settimane</span></div>`;
+  positionTooltip(e);
+}
+function showEvtTooltip(e,ev){
+  tooltip.classList.add('show');
+  tooltip.innerHTML=`<div class="t-title">${EVT_TYPES[ev.type].label}</div><div class="t-row"><span>Tank</span><span>${ev.tank}</span></div>`;
+  positionTooltip(e);
+}
+function positionTooltip(e){
+  tooltip.style.left=Math.min(e.clientX+14, window.innerWidth-270)+"px";
+  tooltip.style.top=(e.clientY+14)+"px";
+}
+function hideTooltip(){ tooltip.classList.remove('show'); }
+
+document.getElementById('prevWeek').addEventListener('click',()=>{ document.getElementById('scrollArea').scrollLeft -= 7*DAY_W; });
+document.getElementById('nextWeek').addEventListener('click',()=>{ document.getElementById('scrollArea').scrollLeft += 7*DAY_W; });
+document.getElementById('todayBtn').addEventListener('click',()=>{
+  const todayX=dayOffset(TODAY)*DAY_W;
+  document.getElementById('scrollArea').scrollLeft = Math.max(0, todayX-260);
+});
+
+/* ══════════════════════════ RENDER: MAGAZZINO ══════════════════════════ */
+const STOCK = [
+  { fam:"IPA", color:RECIPES.IPA.color, fusto:2100, bott:640, lat:380, cov:9 },
+  { fam:"Pale Ale", color:RECIPES.PALE.color, fusto:1400, bott:820, lat:0, cov:14 },
+  { fam:"Pils", color:RECIPES.PILS.color, fusto:1850, bott:410, lat:220, cov:11 },
+  { fam:"Helles", color:RECIPES.HELL.color, fusto:960, bott:300, lat:0, cov:6 },
+  { fam:"Bock", color:RECIPES.BOCK.color, fusto:2200, bott:150, lat:0, cov:38 },
+  { fam:"Saison", color:RECIPES.SAIS.color, fusto:680, bott:200, lat:0, cov:8 },
+  { fam:"Loop", color:RECIPES.LOOP.color, fusto:520, bott:0, lat:140, cov:12 },
+];
+function shade(hex, amt){
+  const n = parseInt(hex.slice(1),16);
+  let r=(n>>16)+amt, g=(n>>8&0xff)+amt, b=(n&0xff)+amt;
+  r=Math.max(0,Math.min(255,r)); g=Math.max(0,Math.min(255,g)); b=Math.max(0,Math.min(255,b));
+  return "#"+(1<<24 | r<<16 | g<<8 | b).toString(16).slice(1);
+}
+function renderStock(){
+  const grid = document.getElementById('stockGrid');
+  const maxTotal = Math.max(...STOCK.map(s=>s.fusto+s.bott+s.lat));
+  grid.innerHTML = STOCK.map(s=>{
+    const total = s.fusto+s.bott+s.lat;
+    const barWidthPct = (total/maxTotal*100).toFixed(1); // this family's bar width relative to the largest family
+    const pf = (s.fusto/total*100).toFixed(0), pb=(s.bott/total*100).toFixed(0), pl=(s.lat/total*100).toFixed(0);
+    return `
+    <div class="stock-card">
+      <div class="stock-top">
+        <div class="stock-name"><span class="stock-sw" style="background:${s.color}"></span>${s.fam}</div>
+        <div class="stock-total"><b>${total.toLocaleString('it-IT')}</b> lt disponibili</div>
+      </div>
+      <div class="stock-bar-track">
+        <div class="stock-bar" style="width:${barWidthPct}%;">
+          ${s.fusto? `<div class="stock-seg" style="width:${pf}%; background:${s.color}">${pf>14? s.fusto+' L':''}</div>`:''}
+          ${s.bott? `<div class="stock-seg" style="width:${pb}%; background:${shade(s.color,-35)}">${pb>14? s.bott+' L':''}</div>`:''}
+          ${s.lat? `<div class="stock-seg" style="width:${pl}%; background:${shade(s.color,40)}">${pl>14? s.lat+' L':''}</div>`:''}
+        </div>
+      </div>
+      <div class="stock-legend">
+        <span><span class="sw" style="background:${s.color}"></span>Fusto ${s.fusto} L</span>
+        <span><span class="sw" style="background:${shade(s.color,-35)}"></span>Bottiglia ${s.bott} L</span>
+        <span><span class="sw" style="background:${shade(s.color,40)}"></span>Lattina ${s.lat} L</span>
+      </div>
+      <div class="stock-cov">copertura stimata a ritmo vendita attuale: <b>${s.cov} giorni</b></div>
+    </div>`;
+  }).join('');
+}
+
+const EXPIRY = [
+  { lot:"L00568", fam:"IPA · fusto", days:6 },
+  { lot:"L00541", fam:"Pale Ale · bottiglia", days:11 },
+  { lot:"L00577", fam:"Bock · fusto", days:22 },
+  { lot:"L00552", fam:"Pils · lattina", days:31 },
+  { lot:"L00560", fam:"Helles · fusto", days:41 },
+];
+function renderExpiry(){
+  document.getElementById('expiryList').innerHTML = EXPIRY.map(x=>`
+    <div class="expiry-row">
+      <div class="expiry-lot mono">${x.lot}</div>
+      <div class="expiry-fam">${x.fam}</div>
+      <div class="expiry-days ${x.days<=14?'soon':'ok'}">${x.days} giorni</div>
+    </div>`).join('');
+}
+
+/* ══════════════════════════ RENDER: RICETTE ══════════════════════════ */
+function renderRicette(){
+  const grid = document.getElementById('recipeGrid');
+  grid.innerHTML = Object.values(RECIPES).map(r=>`
+    <div class="recipe-card" style="border-top-color:${r.color}">
+      <div class="recipe-head">
+        <div class="recipe-name">${r.name}</div>
+        <div class="recipe-status ${r.stato==='attiva'?'attiva':'attesa'}">${r.stato==='attiva'?'ATTIVA':'IN ATTESA'}</div>
+      </div>
+      <div class="recipe-row"><span>Durata standard</span><b>${r.durata}</b></div>
+      <div class="recipe-row"><span>Tank compatibili</span><b>${r.tanks}</b></div>
+      <div class="recipe-row"><span>Doppia cotta</span><b>${r.dual}</b></div>
+      ${r.sinonimi.length? `<div style="margin-top:8px;">${r.sinonimi.map(s=>`<span class="syn-tag">${s}</span>`).join('')}</div>` : ''}
+    </div>`).join('');
+}
+
+/* ══════════════════════════ RENDER: IMPORT LOG ══════════════════════════ */
+function renderLog(){
+  const items = [
+    { icon:'ok', text:'<b>412 righe</b> importate da export DDT luglio, nessuna incongruenza', time:'03:14' },
+    { icon:'warn', text:'<b>DDT 941</b> quantità Vetra PALE modificata: 20 → 16 fusti (rettifica operatore)', time:'03:14' },
+    { icon:'new', text:'Codice articolo <b>B131</b> non riconosciuto, abbinato a cotta 578 tramite lotto L00591', time:'03:14' },
+    { icon:'ok', text:"Nessun record scomparso rispetto all'ultimo import nella finestra 30gg", time:'03:14' },
+  ];
+  const items2 = [
+    { icon:'ok', text:'Giacenza aggiornata: 158 articoli, nessuna anomalia su prodotto birra', time:'03:02' },
+    { icon:'warn', text:'Giacenza negativa su <b>bottiglie vuote 33cl</b> (-84 pz), possibile disallineamento magazzino', time:'03:02' },
+    { icon:'ok', text:'5 lotti aggiornati in vista scadenze, nessuno oltre soglia critica', time:'03:02' },
+  ];
+  const icons={ ok:'✓', warn:'!', new:'+' };
+  const render = (arr, elId) => document.getElementById(elId).innerHTML = arr.map(i=>`
+    <div class="log-row">
+      <div class="log-icon ${i.icon}">${icons[i.icon]}</div>
+      <div class="log-text">${i.text}</div>
+      <div class="log-time">${i.time}</div>
+    </div>`).join('');
+  render(items, 'logList');
+  render(items2, 'logList2');
+}
+
+renderTimeline();
+renderStock();
+renderExpiry();
+renderRicette();
+renderLog();
+</script>
+</body>
+</html>
